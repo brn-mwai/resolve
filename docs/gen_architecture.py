@@ -1,153 +1,266 @@
 #!/usr/bin/env python3
-"""Generate Resolve architecture diagram for Devpost submission."""
+"""Generate Resolve architecture diagram - clean white background."""
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-from matplotlib.patches import FancyBboxPatch
-import numpy as np
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+import matplotlib.patheffects as pe
 
-fig, ax = plt.subplots(1, 1, figsize=(16, 10))
-fig.patch.set_facecolor('#0D1117')
-ax.set_facecolor('#0D1117')
-ax.set_xlim(0, 16)
-ax.set_ylim(0, 10)
+# ---------------------------------------------------------------------------
+# Canvas
+# ---------------------------------------------------------------------------
+fig, ax = plt.subplots(1, 1, figsize=(18, 11))
+fig.patch.set_facecolor('#FFFFFF')
+ax.set_facecolor('#FFFFFF')
+ax.set_xlim(0, 18)
+ax.set_ylim(0, 11)
 ax.axis('off')
 
-# Colors
-ELASTIC_TEAL = '#00BFB3'
-ELASTIC_DARK = '#1B2A4A'
-ACCENT_RED = '#FF4444'
-ACCENT_BLUE = '#3B82F6'
-ACCENT_PURPLE = '#8B5CF6'
-ACCENT_GREEN = '#10B981'
-ACCENT_ORANGE = '#F59E0B'
-TEXT_WHITE = '#E6EDF3'
-TEXT_GRAY = '#8B949E'
-BG_CARD = '#161B22'
-BORDER = '#30363D'
+# ---------------------------------------------------------------------------
+# Palette (white-friendly)
+# ---------------------------------------------------------------------------
+DARK = '#1A1A2E'
+GRAY_700 = '#374151'
+GRAY_500 = '#6B7280'
+GRAY_300 = '#D1D5DB'
+GRAY_100 = '#F3F4F6'
 
-def draw_card(x, y, w, h, title, items=None, color=ELASTIC_TEAL, alpha=0.15):
-    rect = FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.1",
-                          facecolor=color, alpha=alpha, edgecolor=color, linewidth=1.5)
+BLUE = '#2563EB'
+BLUE_BG = '#EFF6FF'
+TEAL = '#0D9488'
+TEAL_BG = '#F0FDFA'
+RED = '#DC2626'
+RED_BG = '#FEF2F2'
+PURPLE = '#7C3AED'
+PURPLE_BG = '#F5F3FF'
+GREEN = '#059669'
+GREEN_BG = '#ECFDF5'
+ORANGE = '#D97706'
+ORANGE_BG = '#FFFBEB'
+ELASTIC = '#005571'
+ELASTIC_BG = '#E8F4F8'
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+def draw_box(x, y, w, h, facecolor, edgecolor, linewidth=1.5, radius=0.12):
+    rect = FancyBboxPatch(
+        (x, y), w, h,
+        boxstyle=f"round,pad={radius}",
+        facecolor=facecolor, edgecolor=edgecolor,
+        linewidth=linewidth, zorder=2
+    )
     ax.add_patch(rect)
-    ax.text(x + w/2, y + h - 0.25, title, ha='center', va='top',
-            fontsize=11, fontweight='bold', color=color, fontfamily='monospace')
-    if items:
-        for i, item in enumerate(items):
-            ax.text(x + 0.2, y + h - 0.65 - i*0.32, item, ha='left', va='top',
-                    fontsize=8, color=TEXT_GRAY, fontfamily='monospace')
 
-def draw_arrow(x1, y1, x2, y2, color=ELASTIC_TEAL, style='->', lw=1.5):
-    ax.annotate('', xy=(x2, y2), xytext=(x1, y1),
-                arrowprops=dict(arrowstyle=style, color=color, lw=lw, connectionstyle='arc3,rad=0.1'))
+def draw_arrow(x1, y1, x2, y2, color=GRAY_500, lw=1.8, style='-|>', rad=0.08):
+    ax.annotate(
+        '', xy=(x2, y2), xytext=(x1, y1),
+        arrowprops=dict(
+            arrowstyle=style, color=color, lw=lw,
+            connectionstyle=f'arc3,rad={rad}',
+            shrinkA=4, shrinkB=4
+        ), zorder=3
+    )
 
+def label(x, y, text, size=10, color=DARK, weight='normal', ha='center', va='center', family='sans-serif'):
+    ax.text(x, y, text, fontsize=size, color=color, fontweight=weight,
+            ha=ha, va=va, fontfamily=family, zorder=5)
+
+def mono(x, y, text, size=8.5, color=GRAY_700, ha='left', va='center'):
+    ax.text(x, y, text, fontsize=size, color=color, fontfamily='monospace',
+            ha=ha, va=va, zorder=5)
+
+def bullet(x, y, text, color=GRAY_700, dot_color=None, size=8.5):
+    if dot_color is None:
+        dot_color = color
+    ax.plot(x, y, 'o', color=dot_color, markersize=4, zorder=5)
+    mono(x + 0.2, y, text, color=color, size=size)
+
+# ---------------------------------------------------------------------------
 # Title
-ax.text(8, 9.6, 'RESOLVE', ha='center', va='center', fontsize=28, fontweight='bold',
-        color=ACCENT_RED, fontfamily='monospace')
-ax.text(8, 9.15, 'Intelligent Incident Resolution Agent', ha='center', va='center',
-        fontsize=12, color=TEXT_GRAY, fontfamily='monospace')
+# ---------------------------------------------------------------------------
+label(9, 10.5, 'RESOLVE', size=30, weight='bold', color=DARK, family='sans-serif')
+label(9, 10.0, 'Intelligent Incident Resolution Agent  |  Elastic Agent Builder', size=11, color=GRAY_500)
 
-# Protocol steps bar
-steps = ['ASSESS', 'INVESTIGATE', 'CORRELATE', 'DIAGNOSE', 'ACT', 'VERIFY']
-step_colors = [ACCENT_BLUE, ACCENT_PURPLE, ACCENT_ORANGE, ACCENT_GREEN, ACCENT_RED, ELASTIC_TEAL]
-for i, (step, col) in enumerate(zip(steps, step_colors)):
-    sx = 1.2 + i * 2.3
-    rect = FancyBboxPatch((sx, 8.25), 2.0, 0.55, boxstyle="round,pad=0.08",
-                          facecolor=col, alpha=0.25, edgecolor=col, linewidth=1.5)
-    ax.add_patch(rect)
-    ax.text(sx + 1.0, 8.52, step, ha='center', va='center', fontsize=9,
-            fontweight='bold', color=col, fontfamily='monospace')
+# ---------------------------------------------------------------------------
+# 6-Step Protocol Bar (top)
+# ---------------------------------------------------------------------------
+steps = [
+    ('1. ASSESS', BLUE, BLUE_BG),
+    ('2. INVESTIGATE', PURPLE, PURPLE_BG),
+    ('3. CORRELATE', ORANGE, ORANGE_BG),
+    ('4. DIAGNOSE', TEAL, TEAL_BG),
+    ('5. ACT', RED, RED_BG),
+    ('6. VERIFY', GREEN, GREEN_BG),
+]
+bar_y = 8.95
+bar_w = 2.35
+bar_h = 0.6
+bar_start = 1.0
+for i, (step_name, col, bg) in enumerate(steps):
+    sx = bar_start + i * 2.7
+    draw_box(sx, bar_y, bar_w, bar_h, facecolor=bg, edgecolor=col, linewidth=2, radius=0.08)
+    label(sx + bar_w / 2, bar_y + bar_h / 2, step_name, size=9.5, weight='bold', color=col, family='monospace')
     if i < len(steps) - 1:
-        ax.annotate('', xy=(sx + 2.2, 8.52), xytext=(sx + 2.05, 8.52),
-                    arrowprops=dict(arrowstyle='->', color=TEXT_GRAY, lw=1))
+        ax.annotate(
+            '', xy=(sx + bar_w + 0.28, bar_y + bar_h / 2),
+            xytext=(sx + bar_w + 0.07, bar_y + bar_h / 2),
+            arrowprops=dict(arrowstyle='->', color=GRAY_300, lw=2)
+        )
 
-# Agent box (center)
-agent_rect = FancyBboxPatch((5.5, 5.0), 5, 2.8, boxstyle="round,pad=0.15",
-                            facecolor=ACCENT_RED, alpha=0.1, edgecolor=ACCENT_RED, linewidth=2)
-ax.add_patch(agent_rect)
-ax.text(8, 7.45, 'RESOLVE AGENT', ha='center', va='center', fontsize=14,
-        fontweight='bold', color=ACCENT_RED, fontfamily='monospace')
-ax.text(8, 7.05, 'Powered by Claude Opus 4.5', ha='center', va='center', fontsize=9,
-        color=TEXT_GRAY, fontfamily='monospace')
+# ---------------------------------------------------------------------------
+# Outer container: Elastic Cloud Serverless
+# ---------------------------------------------------------------------------
+draw_box(0.4, 0.4, 17.2, 8.2, facecolor='#FAFBFC', edgecolor=GRAY_300, linewidth=1.2, radius=0.15)
+label(9, 8.35, 'Elastic Cloud Serverless', size=9, color=GRAY_500, weight='bold')
 
-# Tools inside agent
-tools_left = [
-    ('search-error-logs', 'ES|QL', ACCENT_BLUE),
-    ('analyze-error-trends', 'ES|QL', ACCENT_PURPLE),
-    ('check-deployments', 'ES|QL', ACCENT_ORANGE),
-    ('get-service-health', 'ES|QL', ACCENT_GREEN),
+# ---------------------------------------------------------------------------
+# KIBANA UI (top-right inside container)
+# ---------------------------------------------------------------------------
+kb_x, kb_y, kb_w, kb_h = 13.0, 6.3, 4.2, 1.8
+draw_box(kb_x, kb_y, kb_w, kb_h, facecolor=BLUE_BG, edgecolor=BLUE, linewidth=1.8)
+label(kb_x + kb_w / 2, kb_y + kb_h - 0.3, 'KIBANA UI', size=11, weight='bold', color=BLUE)
+bullet(kb_x + 0.3, kb_y + kb_h - 0.7, 'Agent Builder Chat Interface', color=GRAY_700, dot_color=BLUE, size=8)
+bullet(kb_x + 0.3, kb_y + kb_h - 1.1, 'Service Health Dashboard (5 panels)', color=GRAY_700, dot_color=BLUE, size=8)
+bullet(kb_x + 0.3, kb_y + kb_h - 1.5, 'No custom frontend -- Kibana IS the UI', color=GRAY_500, dot_color=GRAY_300, size=7.5)
+
+# ---------------------------------------------------------------------------
+# RESOLVE AGENT (center)
+# ---------------------------------------------------------------------------
+ag_x, ag_y, ag_w, ag_h = 4.0, 3.6, 8.5, 4.2
+draw_box(ag_x, ag_y, ag_w, ag_h, facecolor='#FFFFFF', edgecolor=DARK, linewidth=2.5, radius=0.15)
+label(ag_x + ag_w / 2, ag_y + ag_h - 0.35, 'RESOLVE AGENT', size=14, weight='bold', color=DARK)
+label(ag_x + ag_w / 2, ag_y + ag_h - 0.75, 'Powered by Claude Sonnet 4.5  |  6-Step Protocol', size=8.5, color=GRAY_500)
+
+# Divider line inside agent
+ax.plot([ag_x + 0.3, ag_x + ag_w - 0.3], [ag_y + ag_h - 1.05, ag_y + ag_h - 1.05],
+        color=GRAY_300, linewidth=1, zorder=4)
+
+# ES|QL Tools (left column)
+esql_x = ag_x + 0.4
+esql_top = ag_y + ag_h - 1.4
+label(esql_x + 1.5, esql_top, 'ES|QL Tools (4)', size=9, weight='bold', color=BLUE, ha='center')
+esql_tools = [
+    ('search-error-logs', BLUE),
+    ('analyze-error-trends', PURPLE),
+    ('check-recent-deployments', ORANGE),
+    ('get-service-health', GREEN),
 ]
-tools_right = [
-    ('search-runbooks', 'ELSER', ELASTIC_TEAL),
-    ('create-incident', 'Workflow', ACCENT_RED),
-    ('notify-oncall', 'Workflow', ACCENT_RED),
-    ('execute-remediation', 'Workflow', ACCENT_RED),
+for i, (name, col) in enumerate(esql_tools):
+    ty = esql_top - 0.45 - i * 0.42
+    draw_box(esql_x, ty - 0.15, 3.2, 0.35, facecolor=GRAY_100, edgecolor=col, linewidth=1.2, radius=0.06)
+    mono(esql_x + 0.15, ty, name, color=col, size=8)
+
+# Index Search (center column)
+idx_x = ag_x + 3.85
+idx_top = esql_top
+label(idx_x + 1.0, idx_top, 'Index Search (1)', size=9, weight='bold', color=TEAL, ha='center')
+draw_box(idx_x, idx_top - 0.6, 2.0, 0.35, facecolor=TEAL_BG, edgecolor=TEAL, linewidth=1.2, radius=0.06)
+mono(idx_x + 0.15, idx_top - 0.42, 'search-runbooks', color=TEAL, size=8)
+label(idx_x + 1.0, idx_top - 1.1, 'ELSER semantic', size=7.5, color=GRAY_500)
+label(idx_x + 1.0, idx_top - 1.4, 'matching', size=7.5, color=GRAY_500)
+
+# Workflow Tools (right column)
+wf_x = ag_x + 6.1
+wf_top = esql_top
+label(wf_x + 1.15, wf_top, 'Workflows (3)', size=9, weight='bold', color=RED, ha='center')
+wf_tools = [
+    'create-incident',
+    'notify-oncall',
+    'execute-remediation',
 ]
-for i, (name, ttype, col) in enumerate(tools_left):
-    ty = 6.5 - i * 0.38
-    ax.text(5.8, ty, f'{name}', ha='left', va='center', fontsize=7.5,
-            color=col, fontfamily='monospace')
+for i, name in enumerate(wf_tools):
+    ty = wf_top - 0.45 - i * 0.42
+    draw_box(wf_x, ty - 0.15, 2.3, 0.35, facecolor=RED_BG, edgecolor=RED, linewidth=1.2, radius=0.06)
+    mono(wf_x + 0.15, ty, name, color=RED, size=8)
 
-for i, (name, ttype, col) in enumerate(tools_right):
-    ty = 6.5 - i * 0.38
-    ax.text(8.5, ty, f'{name}', ha='left', va='center', fontsize=7.5,
-            color=col, fontfamily='monospace')
+# ---------------------------------------------------------------------------
+# DATA LAYER (bottom-left)
+# ---------------------------------------------------------------------------
+dl_x, dl_y, dl_w, dl_h = 0.8, 0.7, 5.5, 2.6
+draw_box(dl_x, dl_y, dl_w, dl_h, facecolor=TEAL_BG, edgecolor=TEAL, linewidth=1.8)
+label(dl_x + dl_w / 2, dl_y + dl_h - 0.3, 'DATA LAYER', size=11, weight='bold', color=TEAL)
+label(dl_x + dl_w / 2, dl_y + dl_h - 0.65, '6 Elasticsearch Indices  |  4,098 Documents', size=8, color=GRAY_500)
 
-# Data layer (bottom left)
-draw_card(0.3, 0.5, 4.5, 4.0, 'DATA LAYER', [
-    'resolve-logs        (2,756 docs)',
-    'resolve-metrics     (1,320 docs)',
-    'resolve-deployments (7 docs)',
-    'resolve-runbooks    (10 docs)',
-    'resolve-alerts      (5 docs)',
-    'resolve-incidents   (agent writes)',
-    '',
-    'semantic_text + ELSER inference',
-    'Elastic Cloud Serverless',
-], ELASTIC_TEAL)
+indices = [
+    ('resolve-logs', '2,756', TEAL),
+    ('resolve-metrics', '1,320', TEAL),
+    ('resolve-deployments', '7', TEAL),
+    ('resolve-runbooks', '10', TEAL),
+    ('resolve-alerts', '5', TEAL),
+    ('resolve-incidents', 'agent', TEAL),
+]
+for i, (idx_name, count, col) in enumerate(indices):
+    row = i // 2
+    column = i % 2
+    ix = dl_x + 0.3 + column * 2.7
+    iy = dl_y + dl_h - 1.05 - row * 0.45
+    mono(ix, iy, f'{idx_name}', color=DARK, size=7.5)
+    mono(ix + 2.1, iy, f'({count})', color=GRAY_500, size=7)
 
-# Action layer (bottom right)
-draw_card(11.2, 0.5, 4.5, 4.0, 'ACTIONS & OUTPUT', [
+# ---------------------------------------------------------------------------
+# ACTIONS & OUTPUT (bottom-right)
+# ---------------------------------------------------------------------------
+ac_x, ac_y, ac_w, ac_h = 11.7, 0.7, 5.5, 2.6
+draw_box(ac_x, ac_y, ac_w, ac_h, facecolor=RED_BG, edgecolor=RED, linewidth=1.8)
+label(ac_x + ac_w / 2, ac_y + ac_h - 0.3, 'ACTIONS & OUTPUT', size=11, weight='bold', color=RED)
+
+actions = [
     'Incident Record Creation',
     'On-Call Webhook Notification',
     'Remediation Action Logging',
-    '',
-    'Formal Incident Report:',
-    '  - Root Cause Analysis',
-    '  - Evidence Chain Timeline',
-    '  - MTTR Calculation',
-    '  - Remediation Recommendation',
-], ACCENT_RED)
+    'Root Cause Analysis Report',
+    'Evidence Chain Timeline',
+    'MTTR Calculation',
+]
+for i, action in enumerate(actions):
+    row = i // 2
+    column = i % 2
+    bx = ac_x + 0.3 + column * 2.7
+    by = ac_y + ac_h - 0.75 - row * 0.45
+    bullet(bx, by, action, color=GRAY_700, dot_color=RED, size=7.5)
 
-# Kibana box (top right)
-draw_card(12.5, 6.5, 3.2, 2.8, 'KIBANA UI', [
-    'Agent Builder Chat',
-    'Service Health Dashboard',
-    '5 Visualization Panels',
-    '',
-    'No custom frontend',
-    'Kibana IS the UI',
-], ACCENT_BLUE)
+# ---------------------------------------------------------------------------
+# Arrows
+# ---------------------------------------------------------------------------
+# Kibana -> Agent
+draw_arrow(kb_x, kb_y + 0.3, ag_x + ag_w - 0.5, ag_y + ag_h, color=BLUE, lw=2, rad=0.15)
+label(11.8, 7.95, 'user prompt', size=7.5, color=BLUE)
 
-# Arrows: Agent <-> Data
-draw_arrow(5.5, 5.8, 4.8, 4.5, ELASTIC_TEAL)
-draw_arrow(4.8, 3.5, 5.5, 5.2, ELASTIC_TEAL)
+# Agent <-> Data Layer
+draw_arrow(ag_x + 1.0, ag_y, dl_x + dl_w - 0.5, dl_y + dl_h, color=TEAL, lw=2, rad=0.12)
+label(3.5, 3.25, 'ES|QL queries', size=7.5, color=TEAL)
 
-# Arrows: Agent -> Actions
-draw_arrow(10.5, 5.8, 11.2, 4.5, ACCENT_RED)
+draw_arrow(dl_x + dl_w - 0.5, dl_y + dl_h - 0.3, ag_x + 0.5, ag_y + 0.3, color=TEAL, lw=2, rad=-0.12)
+label(3.5, 2.75, 'results', size=7.5, color=TEAL)
 
-# Arrows: Kibana -> Agent
-draw_arrow(12.5, 7.2, 10.5, 6.8, ACCENT_BLUE)
+# Agent -> Actions
+draw_arrow(ag_x + ag_w - 1.0, ag_y, ac_x + 0.5, ac_y + ac_h, color=RED, lw=2, rad=-0.12)
+label(13.0, 3.25, 'workflow execution', size=7.5, color=RED)
 
-# Legend
-legend_y = 0.15
-ax.text(5.5, legend_y, 'ES|QL', fontsize=8, color=ACCENT_BLUE, fontfamily='monospace', fontweight='bold')
-ax.text(6.8, legend_y, 'Index Search', fontsize=8, color=ELASTIC_TEAL, fontfamily='monospace', fontweight='bold')
-ax.text(8.6, legend_y, 'Workflows', fontsize=8, color=ACCENT_RED, fontfamily='monospace', fontweight='bold')
-ax.text(10.2, legend_y, '8 Tools Total', fontsize=8, color=TEXT_GRAY, fontfamily='monospace')
+# ---------------------------------------------------------------------------
+# Legend bar at very bottom
+# ---------------------------------------------------------------------------
+ly = 0.15
+legend_items = [
+    ('ES|QL Tools (4)', BLUE),
+    ('Index Search (1)', TEAL),
+    ('Workflow Tools (3)', RED),
+    ('8 Tools Total', GRAY_500),
+]
+lx = 4.5
+for text, col in legend_items:
+    ax.plot(lx, ly, 's', color=col, markersize=7, zorder=5)
+    mono(lx + 0.2, ly, text, color=col, size=8)
+    lx += 3.0
 
+# ---------------------------------------------------------------------------
+# Save
+# ---------------------------------------------------------------------------
 plt.tight_layout()
+plt.savefig('docs/screenshots/01-architecture.png', dpi=200, bbox_inches='tight',
+            facecolor='#FFFFFF', edgecolor='none')
 plt.savefig('docs/resolve-architecture.png', dpi=200, bbox_inches='tight',
-            facecolor='#0D1117', edgecolor='none')
+            facecolor='#FFFFFF', edgecolor='none')
+print("Saved docs/screenshots/01-architecture.png")
 print("Saved docs/resolve-architecture.png")
