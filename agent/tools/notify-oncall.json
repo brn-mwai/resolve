@@ -4,6 +4,6 @@
   "description": "Send an incident notification to the on-call engineering team via webhook. Includes incident ID, severity, affected service, and summary for rapid team response.",
   "tags": ["resolve", "notification", "workflow"],
   "configuration": {
-    "workflow_id": "workflow-1ef8189d-9773-411d-b4d9-70288a4bc2aa"
+    "workflow_id": "workflow-a5032d2f-5703-4a76-a7b5-ad605d425a16"
   }
 }
