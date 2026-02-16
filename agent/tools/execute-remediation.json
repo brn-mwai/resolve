@@ -1,0 +1,9 @@
+{
+  "id": "resolve-execute-remediation",
+  "type": "workflow",
+  "description": "Log and initiate a remediation action for an active incident. Records the action type (rollback, restart, scale-up, config-change), details, and target service in the incident timeline.",
+  "tags": ["resolve", "remediation", "workflow"],
+  "configuration": {
+    "workflow_id": "workflow-80d38e25-f251-4eca-8ca6-5ddc3de4b1ce"
+  }
+}

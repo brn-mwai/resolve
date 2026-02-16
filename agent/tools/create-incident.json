@@ -1,0 +1,9 @@
+{
+  "id": "resolve-create-incident",
+  "type": "workflow",
+  "description": "Create a formal incident record in Elasticsearch. Use this after diagnosing an issue to track the incident with severity, affected service, title, and summary.",
+  "tags": ["resolve", "incident", "workflow"],
+  "configuration": {
+    "workflow_id": "workflow-b4bdc9a4-0b29-4efc-b437-6136ca8d8b01"
+  }
+}

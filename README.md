@@ -61,6 +61,7 @@ The agent queries logs and metrics via **ES|QL**, searches resolution procedures
 |---------|---------|
 | **ES\|QL Tools** (4) | Parameterized queries for log search, metric trend analysis, deployment correlation, and service health overview |
 | **Index Search Tool** (1) | Semantic search over runbook knowledge base using ELSER to find matching resolution procedures |
+| **Elastic Workflows** (3) | Automated incident creation, on-call notification via webhook, and remediation action logging |
 | **Custom Agent** | Multi-step reasoning agent with a 6-step investigation protocol (ASSESS, INVESTIGATE, CORRELATE, DIAGNOSE, ACT, VERIFY) |
 | **6 Data Indices** | Logs, metrics, deployments, runbooks, alerts, and incidents for full observability coverage |
 
@@ -114,7 +115,7 @@ resolve/
 ├── .env.example                   (credential template)
 ├── agent/
 │   ├── agent.json                 (Resolve agent definition)
-│   └── tools/                     (5 tool definitions)
+│   └── tools/                     (8 tool definitions: 4 ES|QL + 1 Search + 3 Workflow)
 ├── data/
 │   ├── generate.py                (synthetic data generator)
 │   ├── requirements.txt

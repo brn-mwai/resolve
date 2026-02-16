@@ -40,6 +40,11 @@ The agent works over a realistic microservices environment with 5 services, 6 El
 - **1 Index Search Tool** - Semantic search using ELSER over a runbook knowledge base:
   - `search-runbooks`: Matches natural language symptom descriptions to resolution procedures
 
+- **3 Elastic Workflow Tools** - Automated actions triggered by the agent:
+  - `create-incident`: Creates a formal incident record in Elasticsearch with severity, service, and timeline
+  - `notify-oncall`: Sends webhook notification to the on-call team with incident details
+  - `execute-remediation`: Logs remediation actions (rollback, restart, scale-up) against the incident record
+
 - **Custom Agent Instructions** - A detailed 6-step investigation protocol that guides the LLM through systematic multi-step reasoning, ensuring it uses data to support every conclusion.
 
 - **6 Elasticsearch Indices** - Logs, metrics, deployments, runbooks, alerts, and incidents with carefully designed mappings including semantic_text fields for vector search.
