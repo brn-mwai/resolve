@@ -1,0 +1,38 @@
+name: resolve-notify-oncall
+description: "Sends an incident notification to the on-call engineering team via webhook"
+tags:
+  - resolve
+  - notifications
+constants:
+  WEBHOOK_URL: "https://webhook.site/placeholder"
+inputs:
+  incident_id:
+    type: string
+    description: "The incident ID to reference"
+  severity:
+    type: string
+    description: "Incident severity level"
+  service:
+    type: string
+    description: "Affected service name"
+  summary:
+    type: string
+    description: "Brief description of the incident"
+steps:
+  - name: send_notification
+    type: http
+    with:
+      url: "{{ consts.WEBHOOK_URL }}"
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: >
+        {
+          "incident_id": "{{ inputs.incident_id }}",
+          "severity": "{{ inputs.severity }}",
+          "service": "{{ inputs.service }}",
+          "summary": "{{ inputs.summary }}",
+          "agent": "resolve",
+          "action_required": "Investigate and confirm remediation",
+          "timestamp": "{{ execution.started_at }}"
+        }

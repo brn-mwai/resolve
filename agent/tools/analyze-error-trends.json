@@ -1,0 +1,19 @@
+{
+  "id": "resolve-analyze-error-trends",
+  "type": "esql",
+  "description": "Analyze service health metrics over time including error rates, latency, and CPU usage. Use this to identify when problems started and track their severity over 5-minute buckets.",
+  "tags": ["resolve", "metrics", "trends"],
+  "configuration": {
+    "query": "FROM resolve-metrics | WHERE service == ?service | WHERE @timestamp >= NOW() - TO_TIMEDURATION(?time_window) | STATS avg_error_rate = AVG(error_rate), avg_latency = AVG(request_latency_ms), max_cpu = MAX(cpu_percent), avg_rps = AVG(requests_per_second) BY BUCKET(@timestamp, 5 minutes) | SORT `BUCKET(@timestamp, 5 minutes)` DESC | LIMIT 50",
+    "params": {
+      "service": {
+        "type": "string",
+        "description": "The service name to analyze metrics for"
+      },
+      "time_window": {
+        "type": "string",
+        "description": "Time range to analyze. Must use full time unit names (e.g., 2 hours, 6 hours, 1 hours)"
+      }
+    }
+  }
+}

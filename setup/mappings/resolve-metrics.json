@@ -1,0 +1,15 @@
+{
+  "mappings": {
+    "properties": {
+      "@timestamp": { "type": "date" },
+      "service": { "type": "keyword" },
+      "host": { "type": "keyword" },
+      "cpu_percent": { "type": "float" },
+      "memory_percent": { "type": "float" },
+      "request_latency_ms": { "type": "float" },
+      "error_rate": { "type": "float" },
+      "requests_per_second": { "type": "float" },
+      "active_connections": { "type": "integer" }
+    }
+  }
+}

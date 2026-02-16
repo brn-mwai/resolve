@@ -1,0 +1,32 @@
+name: resolve-execute-remediation
+description: "Logs and executes a remediation action for an active incident, updating the incident record"
+tags:
+  - resolve
+  - remediation
+inputs:
+  incident_id:
+    type: string
+    description: "The incident ID this remediation is for"
+  action:
+    type: string
+    description: "The remediation action type (e.g., rollback, restart, scale-up, config-change)"
+  detail:
+    type: string
+    description: "Detailed description of the remediation action taken"
+  service:
+    type: string
+    description: "The service the remediation is applied to"
+steps:
+  - name: log_remediation
+    type: elasticsearch.index
+    with:
+      index: resolve-incidents
+      document:
+        incident_id: "{{ inputs.incident_id }}"
+        service: "{{ inputs.service }}"
+        status: "mitigating"
+        actions:
+          - timestamp: "{{ execution.started_at }}"
+            action: "{{ inputs.action }}"
+            detail: "{{ inputs.detail }}"
+        "@timestamp": "{{ execution.started_at }}"

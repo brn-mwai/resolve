@@ -1,0 +1,15 @@
+{
+  "mappings": {
+    "properties": {
+      "@timestamp": { "type": "date" },
+      "level": { "type": "keyword" },
+      "service": { "type": "keyword" },
+      "message": { "type": "text" },
+      "trace_id": { "type": "keyword" },
+      "host": { "type": "keyword" },
+      "error_code": { "type": "keyword" },
+      "request_path": { "type": "keyword" },
+      "response_time_ms": { "type": "integer" }
+    }
+  }
+}

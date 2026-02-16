@@ -1,0 +1,11 @@
+{
+  "id": "resolve-search-runbooks",
+  "type": "index_search",
+  "description": "Search the runbook knowledge base for resolution procedures matching described symptoms or error patterns. Returns step-by-step resolution guides for known issues.",
+  "tags": ["resolve", "runbooks", "knowledge"],
+  "configuration": {
+    "pattern": "resolve-runbooks",
+    "row_limit": 5,
+    "custom_instructions": "Search for runbooks that match the described error symptoms, service issues, or error messages. Prioritize runbooks tagged with the affected service name. Return the full resolution_steps and symptoms fields."
+  }
+}

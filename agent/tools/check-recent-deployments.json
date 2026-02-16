@@ -1,0 +1,19 @@
+{
+  "id": "resolve-check-recent-deployments",
+  "type": "esql",
+  "description": "Check recent deployment history for a specific service. Use this to correlate incidents with recent code or configuration changes. Shows version, deployer, status, and change descriptions.",
+  "tags": ["resolve", "deployments", "correlation"],
+  "configuration": {
+    "query": "FROM resolve-deployments | WHERE service == ?service | WHERE @timestamp >= NOW() - TO_TIMEDURATION(?time_window) | SORT @timestamp DESC | LIMIT 10",
+    "params": {
+      "service": {
+        "type": "string",
+        "description": "The service name to check deployments for"
+      },
+      "time_window": {
+        "type": "string",
+        "description": "How far back to check for deployments. Must use full time unit names (e.g., 24 hours, 48 hours, 7 hours)"
+      }
+    }
+  }
+}

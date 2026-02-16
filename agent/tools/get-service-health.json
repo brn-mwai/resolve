@@ -1,0 +1,10 @@
+{
+  "id": "resolve-get-service-health",
+  "type": "esql",
+  "description": "Get current health overview of all services. Shows the latest error rates, request latency, and CPU usage for every service in the last 15 minutes. Use this as the first step to assess overall system health.",
+  "tags": ["resolve", "health", "overview"],
+  "configuration": {
+    "query": "FROM resolve-metrics | WHERE @timestamp >= NOW() - 15 minutes | STATS latest_error_rate = MAX(error_rate), latest_latency = MAX(request_latency_ms), latest_cpu = MAX(cpu_percent) BY service | SORT latest_error_rate DESC",
+    "params": {}
+  }
+}

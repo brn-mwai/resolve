@@ -1,0 +1,25 @@
+{
+  "mappings": {
+    "properties": {
+      "@timestamp": { "type": "date" },
+      "incident_id": { "type": "keyword" },
+      "severity": { "type": "keyword" },
+      "service": { "type": "keyword" },
+      "title": { "type": "text" },
+      "summary": { "type": "text" },
+      "status": { "type": "keyword" },
+      "assigned_to": { "type": "keyword" },
+      "resolved_at": { "type": "date" },
+      "root_cause": { "type": "text" },
+      "mttr_minutes": { "type": "float" },
+      "actions": {
+        "type": "nested",
+        "properties": {
+          "timestamp": { "type": "date" },
+          "action": { "type": "keyword" },
+          "detail": { "type": "text" }
+        }
+      }
+    }
+  }
+}

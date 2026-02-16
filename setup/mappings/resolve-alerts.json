@@ -1,0 +1,15 @@
+{
+  "mappings": {
+    "properties": {
+      "@timestamp": { "type": "date" },
+      "alert_id": { "type": "keyword" },
+      "severity": { "type": "keyword" },
+      "service": { "type": "keyword" },
+      "condition": { "type": "text" },
+      "message": { "type": "text" },
+      "status": { "type": "keyword" },
+      "threshold_value": { "type": "float" },
+      "actual_value": { "type": "float" }
+    }
+  }
+}

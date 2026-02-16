@@ -1,0 +1,32 @@
+name: resolve-create-incident
+description: "Creates a new incident record in Elasticsearch for tracking, audit, and post-mortem analysis"
+tags:
+  - resolve
+  - incident-management
+inputs:
+  severity:
+    type: string
+    description: "Incident severity level: critical, high, medium, or low"
+  service:
+    type: string
+    description: "The name of the primary affected service"
+  title:
+    type: string
+    description: "Short descriptive incident title"
+  summary:
+    type: string
+    description: "Detailed incident summary including symptoms, impact, and initial assessment"
+steps:
+  - name: store_incident
+    type: elasticsearch.index
+    with:
+      index: resolve-incidents
+      document:
+        incident_id: "INC-{{ execution.id | truncate: 8, '' }}"
+        severity: "{{ inputs.severity }}"
+        service: "{{ inputs.service }}"
+        title: "{{ inputs.title }}"
+        summary: "{{ inputs.summary }}"
+        status: "investigating"
+        assigned_to: "resolve-agent"
+        "@timestamp": "{{ execution.started_at }}"

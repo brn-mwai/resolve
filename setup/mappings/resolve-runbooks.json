@@ -1,0 +1,20 @@
+{
+  "mappings": {
+    "properties": {
+      "title": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "service": { "type": "keyword" },
+      "symptoms": { "type": "text" },
+      "resolution_steps": { "type": "text" },
+      "tags": { "type": "keyword" },
+      "content": {
+        "type": "semantic_text",
+        "inference_id": ".elser-2-elasticsearch"
+      }
+    }
+  }
+}

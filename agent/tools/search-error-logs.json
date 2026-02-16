@@ -1,0 +1,19 @@
+{
+  "id": "resolve-search-error-logs",
+  "type": "esql",
+  "description": "Search application error and critical logs for a specific service within a time window. Returns log messages, timestamps, error codes, and trace IDs to help identify the nature of failures.",
+  "tags": ["resolve", "logs", "errors"],
+  "configuration": {
+    "query": "FROM resolve-logs | WHERE level IN (\"error\", \"critical\") AND service == ?service | WHERE @timestamp >= NOW() - TO_TIMEDURATION(?time_window) | SORT @timestamp DESC | LIMIT 50",
+    "params": {
+      "service": {
+        "type": "string",
+        "description": "The service name to search logs for (e.g., order-service, payment-service)"
+      },
+      "time_window": {
+        "type": "string",
+        "description": "How far back to search. Must use full time unit names (e.g., 1 hours, 2 hours, 30 minutes)"
+      }
+    }
+  }
+}

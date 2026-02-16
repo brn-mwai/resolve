@@ -1,0 +1,14 @@
+{
+  "mappings": {
+    "properties": {
+      "@timestamp": { "type": "date" },
+      "service": { "type": "keyword" },
+      "version": { "type": "keyword" },
+      "deployer": { "type": "keyword" },
+      "status": { "type": "keyword" },
+      "commit_hash": { "type": "keyword" },
+      "changes": { "type": "text" },
+      "rollback_of": { "type": "keyword" }
+    }
+  }
+}
