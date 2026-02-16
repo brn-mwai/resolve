@@ -12,11 +12,65 @@ Resolve is an intelligent incident resolution agent built with Elastic Agent Bui
 ASSESS --> INVESTIGATE --> CORRELATE --> DIAGNOSE --> ACT --> VERIFY
 ```
 
-![Architecture](https://raw.githubusercontent.com/brn-mwai/resolve/main/docs/resolve-architecture.png)
-
 The agent operates over a realistic microservices environment with **5 services**, **6 Elasticsearch indices**, and **4,098 documents** of observability data. It includes a built-in cascading failure scenario where a database connection pool misconfiguration in `order-service` causes failures across the entire stack.
 
-### The 6-Step Protocol
+---
+
+## Screenshots
+
+### 1. Architecture Overview
+> Resolve uses all three Agent Builder tool types: 4 ES|QL tools for structured analytics, 1 ELSER-powered Index Search for semantic runbook matching, and 3 Elastic Workflows for automated incident actions. All running on Elastic Cloud Serverless with Kibana as the UI.
+
+![Architecture](https://raw.githubusercontent.com/brn-mwai/resolve/main/docs/screenshots/01-architecture.png)
+
+### 2. Resolve Agent in Kibana Agent Builder
+> The Resolve agent configured in Kibana with 8 custom tools and a 6-step investigation protocol in the system instructions. Powered by Claude Opus 4.5 as the reasoning model.
+
+![Agent Builder](https://raw.githubusercontent.com/brn-mwai/resolve/main/docs/screenshots/02-agent-builder.png)
+
+### 3. All 8 Custom Tools Deployed
+> 4 ES|QL tools (search-error-logs, analyze-error-trends, check-recent-deployments, get-service-health), 1 Index Search tool (search-runbooks with ELSER), and 3 Workflow tools (create-incident, notify-oncall, execute-remediation).
+
+![Tools List](https://raw.githubusercontent.com/brn-mwai/resolve/main/docs/screenshots/03-tools-list.png)
+
+### 4. Step 1 ASSESS: Agent Checks Service Health
+> The agent begins by calling `get-service-health` to get a broad view across all 5 microservices, then `search-error-logs` for order-service. It identifies elevated error rates and determines this is a Critical severity incident with cascading impact.
+
+![Step ASSESS](https://raw.githubusercontent.com/brn-mwai/resolve/main/docs/screenshots/04-step-assess.png)
+
+### 5. Step 2 INVESTIGATE: Error Trend Analysis
+> The agent calls `analyze-error-trends` and receives 5-minute bucketed metrics showing the exact inflection point. Error rate jumps from 0.2% baseline to 44.2% at the peak. Latency spikes from 118ms to 2,509ms. CPU hits 92%.
+
+![Step INVESTIGATE](https://raw.githubusercontent.com/brn-mwai/resolve/main/docs/screenshots/05-step-investigate.png)
+
+### 6. Step 3 CORRELATE: Deployment Found
+> The agent calls `check-recent-deployments` and discovers order-service v2.4.1 was deployed by bob.kumar at 07:35 UTC. The deployment note reads: "Changed max pool size from 50 to 5 for testing -- FORGOT TO REVERT." The deployment timestamp matches the error spike exactly.
+
+![Step CORRELATE](https://raw.githubusercontent.com/brn-mwai/resolve/main/docs/screenshots/06-step-correlate.png)
+
+### 7. Step 4 DIAGNOSE: Runbook Semantic Search Match
+> The agent calls `search-runbooks` with the symptoms "database connection pool exhaustion high error rate". ELSER semantic matching returns the exact runbook: "Database Connection Pool Exhaustion" with step-by-step resolution instructions including "IMMEDIATE ROLLBACK to previous version."
+
+![Step DIAGNOSE](https://raw.githubusercontent.com/brn-mwai/resolve/main/docs/screenshots/07-step-diagnose.png)
+
+### 8. Step 5 ACT: Complete Incident Report
+> The agent produces a formal incident report with root cause, a precise evidence chain timeline table (specific error rates and latency at each 5-minute interval), severity assessment, recommended rollback action, runbook reference, and on-call notification draft. MTTR: 22 minutes.
+
+![Step ACT](https://raw.githubusercontent.com/brn-mwai/resolve/main/docs/screenshots/08-step-act.png)
+
+### 9. Kibana Dashboard: Service Health Visualization
+> The Resolve dashboard shows 5 panels: Service Error Rate Trends (line chart), Error Log Count by Service (bar chart), Active Alerts by Severity (donut), Deployment Timeline (table), and Request Latency Trends (line chart). The error spike from the cascading failure is clearly visible.
+
+![Dashboard](https://raw.githubusercontent.com/brn-mwai/resolve/main/docs/screenshots/09-dashboard.png)
+
+### 10. Impact: Before vs After
+> Manual incident investigation takes 30-60 minutes. Resolve automates the entire process in under 5 minutes using structured multi-step reasoning across logs, metrics, deployments, and runbooks.
+
+![Impact](https://raw.githubusercontent.com/brn-mwai/resolve/main/docs/screenshots/10-impact.png)
+
+---
+
+## The 6-Step Protocol
 
 | Step | What It Does | Tools Used |
 |------|-------------|------------|
@@ -27,7 +81,7 @@ The agent operates over a realistic microservices environment with **5 services*
 | **ACT** | Creates incident record, notifies on-call, logs remediation | `create-incident` + `notify-oncall` + `execute-remediation` (Workflows) |
 | **VERIFY** | Re-checks metrics to confirm recovery | `get-service-health` + `analyze-error-trends` (ES\|QL) |
 
-### The Incident Scenario
+## The Incident Scenario
 
 | Time | Event |
 |------|-------|
@@ -37,17 +91,8 @@ The agent operates over a realistic microservices environment with **5 services*
 | T+8min | notification-service starts failing |
 | T+10min | Alert fires: "order-service error rate > 30%" |
 | T+10min | **Resolve agent investigates** |
-| T+12min | Agent identifies root cause, recommends rollback |
+| T+12min | Agent identifies root cause, recommends rollback to v2.3.9 |
 | T+20min | After rollback, all services recover to baseline |
-
-### Agent Output Example
-
-The agent produces a complete incident report with:
-- **Root Cause**: DB connection pool reduced from 50 to 5 in v2.4.1 deployment
-- **Evidence Chain**: Timeline table with specific numbers (error rate 0.2% to 44.2%, latency 118ms to 2509ms)
-- **MTTR**: 22 minutes
-- **Recommended Action**: Rollback to v2.3.9
-- **Runbook Match**: "Database Connection Pool Exhaustion" procedure
 
 ## How we built it
 
@@ -74,9 +119,9 @@ Semantic search using **ELSER** (Elastic Learned Sparse Encoder) over a runbook 
 
 ### Elastic Workflow Tools (3)
 Automated actions the agent triggers after diagnosis:
-- **create-incident**: Writes a formal incident record to `resolve-incidents` index
-- **notify-oncall**: Sends webhook notification to the on-call team
-- **execute-remediation**: Logs the remediation action (rollback, restart, scale-up)
+- **create-incident**: Writes a formal incident record to `resolve-incidents` index with severity, service, timeline
+- **notify-oncall**: Sends webhook notification to the on-call engineering team with incident details
+- **execute-remediation**: Logs the remediation action (rollback, restart, scale-up) against the incident record
 
 ### Data Layer
 6 Elasticsearch indices with carefully designed mappings:
@@ -131,14 +176,6 @@ Automated actions the agent triggers after diagnosis:
 - **Multi-incident correlation**: Track patterns across incidents to identify systemic reliability issues
 - **Custom runbook ingestion**: Let teams upload their own runbooks and resolution procedures
 - **Post-mortem generation**: Automatically compile investigation steps into a formatted post-mortem document
-
-## Built With
-
-Elastic Agent Builder, Elasticsearch, ES|QL, ELSER, Elastic Workflows, Kibana, Python
-
-## Links
-
-- **GitHub**: [github.com/brn-mwai/resolve](https://github.com/brn-mwai/resolve)
 
 ---
 
