@@ -1,8 +1,10 @@
 ## Inspiration
 
-Every SRE team has experienced the 3am page: a production service is down, users are impacted, and you need to investigate across logs, metrics, and deployment history to find what went wrong. This manual process takes 30-60 minutes per incident. During that time, users are affected, revenue is lost, and engineers burn out from repetitive toil.
+It's 3am. Your phone buzzes. Production is down. Error rates are spiking, cascading across services, and users are impacted. You open four dashboards, grep through logs, search Confluence for the runbook, page the on-call team, and write up the incident ticket. Forty-five minutes later, you find the root cause: someone changed a config value from 50 to 5.
 
-We asked: what if an AI agent could perform the entire investigation autonomously, following the same systematic protocol that senior SREs use, but in seconds instead of minutes?
+Every SRE team has lived this. The average incident takes 30-60 minutes to investigate manually. At 2 incidents per week, that's $468,000/year in lost engineering time and extended downtime.
+
+We asked: what if an AI agent could do the entire investigation autonomously -- following the same systematic protocol that senior SREs use, but in under 5 minutes?
 
 ## What it does
 
@@ -12,7 +14,12 @@ Resolve is an intelligent incident resolution agent built with Elastic Agent Bui
 ASSESS --> INVESTIGATE --> CORRELATE --> DIAGNOSE --> ACT --> VERIFY
 ```
 
-The agent operates over a realistic microservices environment with **5 services**, **6 Elasticsearch indices**, and **4,098 documents** of observability data. It includes a built-in cascading failure scenario where a database connection pool misconfiguration in `order-service` causes failures across the entire stack.
+The agent operates over a realistic microservices environment with **5 services**, **6 Elasticsearch indices**, and **4,098 documents** of observability data. It handles **multiple incident types** with different investigation paths:
+
+- **Scenario 1: Cascading DB Pool Failure** -- A deployment misconfiguration in `order-service` causes failures across the entire stack. The agent correlates the deployment, matches the DB pool runbook, and recommends rollback.
+- **Scenario 2: Memory Leak** -- `user-service` memory climbs steadily with no bad deployment to blame. The agent takes a completely different path: skips deployment correlation, identifies the memory leak pattern, matches a different runbook, and recommends pod restarts.
+
+Same agent, same tools, different reasoning. This proves Resolve isn't hardcoded -- it thinks.
 
 ---
 
@@ -67,6 +74,11 @@ The agent operates over a realistic microservices environment with **5 services*
 > Manual incident investigation takes 30-60 minutes. Resolve automates the entire process in under 5 minutes using structured multi-step reasoning across logs, metrics, deployments, and runbooks.
 
 ![Impact](https://raw.githubusercontent.com/brn-mwai/resolve/main/docs/screenshots/10-impact.png)
+
+### 11. Agent Reasoning Trace
+> Under the hood: the full investigation flow visualized. 10 tool calls across 3 tool types, chained through autonomous reasoning. The agent assessed, investigated, correlated, diagnosed, and acted -- producing a formal incident record, on-call notification, and remediation log. 13 LLM calls, 148K tokens, 113 seconds total.
+
+![Reasoning Trace](https://raw.githubusercontent.com/brn-mwai/resolve/main/docs/screenshots/11-reasoning-trace.png)
 
 ---
 
@@ -153,12 +165,14 @@ Automated actions the agent triggers after diagnosis:
 
 ## Accomplishments that we're proud of
 
-- The agent correctly identifies the root cause (DB pool misconfiguration from 50 to 5 connections) by **chaining 8+ tool calls across 4 different data sources** in a single conversation
-- The semantic runbook search (ELSER-powered) accurately matches "database connection pool exhaustion" to the correct runbook out of 10 candidates
+- The agent correctly identifies the root cause (DB pool misconfiguration from 50 to 5 connections) by **chaining 10 tool calls across 4 different data sources** in a single conversation
+- **Two completely different incident scenarios** (DB pool failure vs memory leak) prove the agent reasons autonomously -- it takes different investigation paths, matches different runbooks, and recommends different remediations
+- The semantic runbook search (ELSER-powered) accurately matches symptoms to the correct runbook out of 10 candidates, regardless of the incident type
 - The incident report includes a **precise timeline table with specific numbers** -- not vague summaries, but exact metrics at each 5-minute interval
+- All three Elastic Workflow tools fire successfully: incident record created, on-call team notified, remediation action logged
 - Uses **all three Agent Builder tool types**: ES|QL, Index Search, and Elastic Workflows
 - The entire project deploys in under 2 minutes with a single script
-- **MTTR reduced from 45 minutes (manual) to under 5 minutes (agent-assisted)**
+- **MTTR reduced from 45 minutes (manual) to under 5 minutes (agent-assisted)** -- $468K/year in savings at 2 incidents/week
 
 ## What we learned
 
@@ -172,10 +186,11 @@ Automated actions the agent triggers after diagnosis:
 
 ## What's next for Resolve
 
-- **Live alerting integration**: Connect to PagerDuty/OpsGenie webhooks so Resolve starts investigating the moment an alert fires
-- **Multi-incident correlation**: Track patterns across incidents to identify systemic reliability issues
-- **Custom runbook ingestion**: Let teams upload their own runbooks and resolution procedures
-- **Post-mortem generation**: Automatically compile investigation steps into a formatted post-mortem document
+- **Live alert-triggered investigations**: Connect to PagerDuty/OpsGenie webhooks so Resolve starts investigating the moment an alert fires -- zero human intervention needed
+- **Multi-incident pattern detection**: Track patterns across incidents to identify systemic reliability issues before they cascade
+- **Custom runbook ingestion**: Let teams upload their own runbooks via drag-and-drop; ELSER indexes them automatically for semantic search
+- **Post-mortem generation**: Automatically compile the agent's investigation steps, evidence chain, and timeline into a formatted post-mortem document
+- **Cost tracking**: Calculate the dollar value of each incident resolved, building the business case for autonomous incident response
 
 ---
 
